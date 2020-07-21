@@ -1,0 +1,38 @@
+{
+  "name": "sqlite-search",
+  "version": "0.0.1",
+  "description": "Full text search using SQLite",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "eslint": "latest",
+    "eslint-config-google": "latest",
+    "express": "^4.17.1",
+    "grunt": "latest",
+    "grunt-cli": "latest",
+    "grunt-eslint": "latest",
+    "grunt-stylelint": "latest",
+    "htmlhint": "latest",
+    "sqlite3": "^5.0.0",
+    "stylelint": "latest",
+    "stylelint-config-standard": "latest"
+  },
+  "engines": {
+    "node": "12.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/samdutton/sqlite-search"
+  },
+  "homepage": "https://github.com/samdutton/sqlite-search#readme",
+  "license": "MIT",
+  "keywords": [
+    "node",
+    "express",
+    "full text search",
+    "search",
+    "sqlite"
+  ]
+}
