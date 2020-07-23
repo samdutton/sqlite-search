@@ -37,19 +37,36 @@ db.serialize(() => {
       });
     });
   } else {
-    console.log('Database \'Captions\' ready to go!');
-    db.each('SELECT * from Captions', (err, row) => {
-      console.log('err:', err);
-      console.log('row:', row);
+    console.log('Database \'captions\' ready to go!');
+    db.each('SELECT * from captions', (error, row) => {
+      if (error) {
+        console.log('Error geting captions:', error);
+      }
       if (row) {
-        console.log(`row: ${row}`);
+        console.log('row:', row);
       }
     });
   }
 });
 
 app.get('/', (request, response) => {
+  console.log('/ request.path', request.path);
+  if (request.query.q) {
+    console.log('query:', request.query.q);
+    response.send(`query:, ${request.query.q}`);
+  }
   response.sendFile(`${__dirname}/views/index.html`);
+});
+
+app.get('/search', (request, response) => {
+  console.log('/search request:', request.path);
+  if (request.query.q) {
+    console.log('query:', request.query.q);
+    response.send(`query:, ${request.query.q}`);
+  } else {
+    console.log('No query');
+    response.send('No query');
+  }
 });
 
 // endpoint to get all the dreams in the database
