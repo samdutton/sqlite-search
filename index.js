@@ -16,24 +16,25 @@ const exists = fs.existsSync(dbFile);
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database(dbFile);
 
+const captions = [{video: 'F-JpyC16bNc', time: '24', text: 'Find and count my sheep'},
+  {video: 'C-JpyC16baB', time: '123', text: 'Climb a really tall mountain'},
+  {video: 'W-JpyC16baB', time: '1119', text: 'Wash the dishes'}];
+
 // if sqlite.db does not exist, create it, otherwise print records to console
 db.serialize(() => {
   if (!exists) {
-    db.run('CREATE TABLE Captions (id INTEGER PRIMARY KEY AUTOINCREMENT, caption TEXT, video TEXT, time TEXT)');
+    db.run('CREATE TABLE captions (video TEXT, time TEXT, text TEXT)');
     console.log('New table Captions created!');
-
-    // insert default Captions
+    const values = [];
+    for (const caption of captions) {
+      const value = `('${caption.video}', '${caption.time}', '${caption.text}')`;
+      values.push(value);
+    }
     db.serialize(() => {
-      // BEGIN TRANSACTION;
-      // INSERT INTO 'tablename' table VALUES ('data1', 'data2');
-      // INSERT INTO 'tablename' table VALUES ('data3', 'data4');
-      // ...
-      // COMMIT;
-      db.run("INSERT INTO Captions (caption, video, time) VALUES ('Find and count my sheep', 'F-JpyC16bNc', '24'), ('Climb a really tall mountain', 'C-JpyC16baB', '123'), ('Wash the dishes', 'W-JpyC16baB', '1119')");
-    });
-
-    db.each('SELECT * from Captions', (err, row) => {
-      console.log('row', row);
+      db.run(`INSERT INTO captions VALUES ${values.join(',')}`);
+      db.each('SELECT * from captions', (err, row) => {
+        console.log('row:', row);
+      });
     });
   } else {
     console.log('Database \'Captions\' ready to go!');
