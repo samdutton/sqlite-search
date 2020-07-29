@@ -1,0 +1,84 @@
+:root {
+  --desktop-font-size: 16px;
+  --mobile-font-size: 22px;
+}
+
+body {
+  font-family: sans-serif;
+  font-weight: 500;
+  margin: 50px 20px;
+}
+
+button {
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  color: #444;
+  cursor: pointer;
+  font-size: 22px; /* fallback */
+  font-size: var(--mobile-font-size);
+  font-weight: 500;
+  margin: 3px 0 0 0;
+  padding: 15px;
+}
+
+button:hover {
+  background-color: #ccc;
+  color: black;
+}
+button:disabled {
+  pointer-events: none;
+}
+
+h1 {
+  border-bottom: 1px solid #ccc;
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0 0 60px 0;
+  padding: 0 0 5px 0;
+}
+
+input {
+  border: 1px solid #ccc;
+  font-size: 22px; /* fallback */
+  font-size: var(--mobile-font-size);
+  margin: 0 10px 10px 0;
+  max-width: 300px;
+  padding: 15px;
+  width: 50%;
+}
+
+input[type=email]:not(:focus):invalid,
+input[type=password]:not(:focus):invalid {
+  color: red;
+  outline-color: red;
+}
+
+form section {
+  margin: 0 0 30px 0;
+  position: relative; /* for password toggle positioning */
+}
+
+@media (min-width: 450px) {
+  body {
+    margin: 50px;
+  }
+  button {
+    font-size: 14px; /* fallback */
+    font-size: var(--desktop-font-size);
+  }
+  h1 {
+    font-size: 28px;
+    font-size: calc(2 * var(--desktop-font-size));
+    font-weight: 500;
+    margin: 0 0 80px 0;
+  }
+  input {
+    font-size: 14px; /* fallback */
+    font-size: var(--desktop-font-size);
+  }
+  label {
+    font-size: 14px; /* fallback */
+    font-size: var(--desktop-font-size);
+  }
+}
