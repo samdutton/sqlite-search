@@ -20,8 +20,13 @@
 
   </head>
   <body>
-    <h1>SQLite full text search</h1>
-    <input id="query" autofocus>
-    <button id="search">Search</button>
+    <main>
+      <h1>SQLite full text search</h1>
+      <form>
+        <input id="query" placeholder="Enter search query" autofocus pattern="(\d)+">
+        <div id="query-constraints">Letters, numbers only.</div>
+        <button id="search" type="submit">Search</button>
+      </form>
+  </main>
   </body>
 </html>

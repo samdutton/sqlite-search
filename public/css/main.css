@@ -26,8 +26,14 @@ button:hover {
   background-color: #ccc;
   color: black;
 }
+
 button:disabled {
   pointer-events: none;
+}
+
+div#query-constraints {
+  margin: 0 0 30px 0;
+  font-size: 16px;
 }
 
 h1 {
@@ -42,10 +48,9 @@ input {
   border: 1px solid #ccc;
   font-size: 22px; /* fallback */
   font-size: var(--mobile-font-size);
-  margin: 0 10px 10px 0;
-  max-width: 300px;
+  margin: 0 0 10px 0;
   padding: 15px;
-  width: 50%;
+  width: calc(100% - 30px); /* full width minus padding */
 }
 
 input[type=email]:not(:focus):invalid,
@@ -54,29 +59,37 @@ input[type=password]:not(:focus):invalid {
   outline-color: red;
 }
 
-form section {
-  margin: 0 0 30px 0;
-  position: relative; /* for password toggle positioning */
+main {
+  margin: 0 auto;
+  max-width: 500px;
 }
 
 @media (min-width: 450px) {
   body {
     margin: 50px;
   }
+
   button {
     font-size: 14px; /* fallback */
     font-size: var(--desktop-font-size);
   }
+
+  div#query-constraints {
+    font-size: 14px;
+  }
+
   h1 {
     font-size: 28px;
     font-size: calc(2 * var(--desktop-font-size));
     font-weight: 500;
     margin: 0 0 80px 0;
   }
+
   input {
     font-size: 14px; /* fallback */
     font-size: var(--desktop-font-size);
   }
+
   label {
     font-size: 14px; /* fallback */
     font-size: var(--desktop-font-size);
