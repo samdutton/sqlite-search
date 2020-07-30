@@ -45,8 +45,6 @@ db.serialize(() => {
     console.log(`Database '${DB_NAME}' already exists.`);
   }
   logCaptions();
-
-  closeDatabase();
 });
 
 app.get('/', (request, response) => {
@@ -59,11 +57,9 @@ app.get('/', (request, response) => {
 });
 
 app.get('/search', (request, response) => {
-  console.log('/search request:', request.path);
   if (request.query.q) {
-    console.log('query:', request.query.q);
-    search(request.query.q);
-    response.send(`query:, ${request.query.q}`);
+    console.log('>>> Query received:', request.query.q);
+    search(response, request.query.q);
   } else {
     console.log('No query');
     response.send('No query');
@@ -151,30 +147,28 @@ const listener = app.listen(process.env.PORT || 9999, () => {
   console.log(`App is listening on port ${listener.address().port}`);
 });
 
-function search(query) {
-  console.log('query:', query);
-  db.all(`SELECT * FROM ${DB_NAME} WHERE text LIKE '%${query}%'`, (error, rows) => {
-    if (error) {
-      return console.error('search() error:', error.message);
-      process.exit(1);
-    };
-    handleSearchResult(query, rows);
-    return rows;
+// Search the database then call sendSearchResult().
+function search(response, query) {
+  console.log('Query in search():', query);
+  db.serialize(() => {
+    db.all(`SELECT * FROM ${DB_NAME} WHERE text LIKE '%${query}%'`, (error, rows) => {
+      if (error) {
+        console.error('search() error:', error.message);
+      } else {
+        response.send(rows);
+      }
+    });
   });
 }
 
-function handleSearchResult(query, rows) {
-  console.log('>>> search result:', query, rows);
-}
-
-function closeDatabase() {
-  db.close((error) => {
-    if (error) {
-      return console.error(error.message);
-    }
-    console.log(`Closed connection to '${DB_NAME}' database.`);
-  });
-}
+// function closeDatabase() {
+//   db.close((error) => {
+//     if (error) {
+//       return console.error(error.message);
+//     }
+//     console.log(`Closed connection to '${DB_NAME}' database.`);
+//   });
+// }
 
 function logCaptions() {
   db.all(`SELECT * from ${DB_NAME}`, (error, rows) => {

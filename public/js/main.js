@@ -14,9 +14,9 @@ searchButton.onclick = doQuery;
 function doQuery() {
   console.log('Query; ', queryInput.value);
   fetch(`/search?q=${queryInput.value}`)
-    .then((response) => response.text())
-    .then((text) => {
-      console.log(text);
+    .then((response) => response.json())
+    .then((json) => {
+      console.log(json);
     });
 }
 
