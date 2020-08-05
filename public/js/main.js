@@ -1,22 +1,33 @@
 const queryInput = document.getElementById('query');
-const searchButton = document.getElementById('search');
+const form = document.getElementById('search');
 
-
-// Do a search if user presses enter/return key
 queryInput.onkeydown = () => {
+  // Do a search if the user presses the enter or return key.
   if (event.key === 'Enter' || event.key === 'Tab') {
-    doQuery();
+    search();
   }
 };
 
-searchButton.onclick = doQuery;
+queryInput.oninput = () => {
+  // Enable :invalid CSS if input is not empty.
+  if (queryInput.value.length > 0) {
+    queryInput.classList.add('validate');
+  } else {
+    queryInput.classList.remove('validate');
+  }
+};
 
-function doQuery() {
+form.onsubmit = (event) => {
+  event.preventDefault();
+  search();
+};
+
+function search() {
   console.log('Query; ', queryInput.value);
   fetch(`/search?q=${queryInput.value}`)
     .then((response) => response.json())
     .then((json) => {
-      console.log(json);
+      console.log('Response:', json);
     });
 }
 

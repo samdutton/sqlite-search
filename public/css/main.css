@@ -1,12 +1,36 @@
 :root {
-  --desktop-font-size: 16px;
+  --desktop-font-size: 18px;
   --mobile-font-size: 22px;
 }
 
+.hidden {
+  height: 0; /* to enable opacity transition: doesn't work if setting display */
+  margin: 0 !important;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.shadow-bottom {
+  box-shadow: 0 19px 19px -8px rgba(100, 100, 100, 0.3);
+}
+
+div#credit a {
+  color: #999;
+  text-decoration: none;
+}
+
+div#credit a:hover {
+  color: black;
+  text-decoration: underline;
+}
+
 body {
+  color: #444;
   font-family: sans-serif;
   font-weight: 500;
   margin: 50px 20px;
+  word-break: break-word;
 }
 
 button {
@@ -31,6 +55,42 @@ button:disabled {
   pointer-events: none;
 }
 
+details#search-options[open] {
+  margin: 0 0 20px 0;
+}
+
+details div {
+  margin: 0 0 20px 0;
+}
+
+div#credit {
+  border-top: 1px solid #ccc;
+  color: #666 !important;
+  font-weight: 100;
+  line-height: 2em;
+  padding: 10px 0 0 0;
+}
+
+.hidden + div#credit {
+  border-top: none;
+}
+
+div#info {
+  color: #999;
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.4em;
+  margin: 0 0 16px 0;
+}
+
+div#query-info {
+  border-bottom: 1px solid #eee;
+  color: #888;
+  font-size: 14px;
+  margin: 0 0 20px 0;
+  padding: 0 0 20px 0;
+}
+
 div#query-constraints {
   margin: 0 0 30px 0;
   font-size: 16px;
@@ -53,15 +113,85 @@ input {
   width: calc(100% - 30px); /* full width minus padding */
 }
 
-input[type=email]:not(:focus):invalid,
-input[type=password]:not(:focus):invalid {
+input.validate:invalid {
   color: red;
   outline-color: red;
+}
+
+#search-options input[type=text] {
+  width: calc(100% - 140px);
+}
+
+li {
+  list-style-type: none;
+}
+
+ol#matches li {
+  color: #444;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.3em;
+  margin: 1px 0 1em 0;
+  padding: 0 0 0 15px;
+  position: relative;
+  text-indent: -1em;
+}
+
+ol#matches li:hover {
+  color: var(--caption-highlight);
 }
 
 main {
   margin: 0 auto;
   max-width: 500px;
+}
+
+ol {
+  padding: 0;
+}
+
+ol#matches {
+  border-bottom: 1px solid #ccc;
+  margin: 0;
+  max-height: calc(100% - 170px);
+  padding: 20px 0 10px 0;
+}
+
+section#top {
+  background-color: white;
+  border-bottom: 1px solid #ccc;
+  box-shadow: 0 10px 10px 10px white;
+  margin: 0;
+  padding: 20px 0 40px 0;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+select {
+  border: 1px solid #ccc;
+  height: 38px;
+}
+
+div#credit span {
+  color: black;
+  text-decoration: none;
+}
+
+strong {
+  font-weight: 500;
+}
+
+summary {
+  color: #666;
+  cursor: pointer;
+  display: block;
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 0 24px 2px;
+  outline: none;
 }
 
 @media (min-width: 450px) {
@@ -93,5 +223,10 @@ main {
   label {
     font-size: 14px; /* fallback */
     font-size: var(--desktop-font-size);
+  }
+
+  details#search-options select {
+    border-color: #ddd;
+    height: 34px;
   }
 }

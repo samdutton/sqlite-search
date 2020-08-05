@@ -59,10 +59,10 @@ app.get('/', (request, response) => {
 app.get('/search', (request, response) => {
   if (request.query.q) {
     console.log('>>> Query received:', request.query.q);
-    search(response, request.query.q);
+    search(response, request.query.q.replace(/[^\w-]/g), '');
   } else {
-    console.log('No query');
-    response.send('No query');
+    console.log('No query value in search request.');
+    response.send('No query value in search request.');
   }
 });
 
@@ -136,11 +136,6 @@ app.get('/clearCaptions', (request, response) => {
       });
   }
 });
-
-// helper function that prevents html/css/script malice
-const cleanseString = (string) => {
-  return string.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-};
 
 // listen for requests :)
 const listener = app.listen(process.env.PORT || 9999, () => {

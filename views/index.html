@@ -1,32 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
 
-    <meta charset="utf-8">
-    <meta name="description" content="Full text search for Shakespeare's plays and poems.">
-    <meta name="author" content="//samdutton.com">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta itemprop="name" content="Full text search for Shakespeare's plays and poems.">
-    <meta itemprop="image" content="images/icons/icon192.png">
-    <meta id="theme-color" name="theme-color" content="#fff">
+  <meta charset="utf-8">
+  <meta name="description" content="Full text search for Shakespeare's plays and poems.">
+  <meta name="author" content="//samdutton.com">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta itemprop="name" content="Full text search for Shakespeare's plays and poems.">
+  <meta itemprop="image" content="images/icons/icon192.png">
+  <meta id="theme-color" name="theme-color" content="#fff">
 
-    <link rel="icon" href="images/icons/icon192.png">
-    <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="images/icons/icon192.png">
+  <link rel="manifest" href="/manifest.json">
 
-    <title>SQLite search</title>
+  <title>SQLite search</title>
 
-    <link rel="stylesheet" href="/css/main.css">
-    <script src="/js/main.js" defer></script>
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="/js/main.js" defer></script>
 
-  </head>
-  <body>
-    <main>
-      <h1>SQLite full text search</h1>
-      <form>
-        <input id="query" placeholder="Enter search query" autofocus pattern="(\d)+">
-        <div id="query-constraints">Letters, numbers only.</div>
-        <button id="search" type="submit">Search</button>
-      </form>
-  </main>
-  </body>
+</head>
+<body>
+  <main>
+    <h1>SQLite full text search</h1>
+
+    <!-- Search, video and page options -->
+    <section id="top">
+
+
+      <form id="search">
+        <input id="query" placeholder="Enter search query" pattern="[\w-]+"
+        minlength="2" title="Two or more letters, numbers, underscores or hyphens." 
+        enterkeyhint="search" autocomplete="" autofocus required>
+        <div id="query-constraints">Two or more letters, numbers, underscores or hyphens</div>
+        <details id="search-options">
+          <summary>Search options</summary>
+        <!-- <div>
+          <label for="title">Title: </label>
+          <input type="text" id="title" list="titles">
+          <datalist id="titles"></datalist>
+        </div>
+        <div>
+          <label for="speaker">Speaker: </label>
+          <input id="speaker"  title="One speaker name" type="text" list="speakers">
+          <datalist id="speakers"></datalist>
+        </div> -->
+      </details> <!-- search-options -->
+      <button type="submit">Search</button>
+    </form>
+
+
+    <div id="info"></div>
+    <div id="query-info" class="hidden"></div>
+
+  </section> <!-- top -->
+
+  <ol id="matches" class="hidden" ></ol>
+
+  <div id="credit">
+    <a id="github" href="https://github.com/samdutton/wdl"
+    title="GitHub source repo">View source on GitHub</a>
+  </div>
+
+</main>
+</body>
 </html>
