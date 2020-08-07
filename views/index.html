@@ -18,6 +18,17 @@
   <link rel="stylesheet" href="/css/main.css">
   <script src="/js/main.js" defer></script>
 
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-174913118-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-174913118-1');
+  </script>
+
+
 </head>
 <body>
   <main>
@@ -28,7 +39,7 @@
 
 
       <form id="search">
-        <input id="query" placeholder="Enter search query" pattern="[\w-]+"
+        <input id="query" placeholder="Enter search query" pattern="[\p{Letter}\w\s-]+"
         minlength="2" title="Two or more letters, numbers, underscores or hyphens." 
         enterkeyhint="search" autocomplete="" autofocus required>
         <div id="query-constraints">Two or more letters, numbers, underscores or hyphens</div>
