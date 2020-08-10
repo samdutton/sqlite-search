@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/* globals gtag */
+/* globals ga */
 
 const form = document.getElementById('search');
 const infoElement = document.getElementById('info');
@@ -26,13 +26,13 @@ let startTime;
 
 const baseUrl = `${window.location.origin}${window.location.pathname}`;
 
-const SEARCH_QUERY_PAGE_LOCATION = `https://glitch.com/#!/sqlite-search/search?q=`;
-const SEARCH_QUERY_PAGE_PATH = `/search?q=`;
+// const SEARCH_QUERY_PAGE_LOCATION = `https://glitch.com/#!/sqlite-search/search?q=`;
+// const SEARCH_QUERY_PAGE_PATH = `/search?q=`;
 
 queryInput.onkeydown = () => {
   // Do a search if the user presses the enter or return key.
   if (event.key === 'Enter' || event.key === 'Tab') {
-    search();
+    search(queryInput.value);
   }
 };
 
@@ -51,7 +51,6 @@ form.onsubmit = (event) => {
 };
 
 function search(query) {
-  doAnalytics(query);
   matchesList.textContent = '';
   startTime = window.performance.now();
   console.time(`Do search for '${query}'`);
@@ -62,6 +61,7 @@ function search(query) {
     }).catch((error) => {
       console.error(`search() error for query ${query}\n`, error);
     });
+  doAnalytics(query);
 }
 
 function handleSearchResponse(query, matches) {
@@ -188,13 +188,15 @@ clearButton.addEventListener('click', event => {
 
 */
 
-function doAnalytics() {
+function doAnalytics(query) {
   // Add Google Analytics tracking for searches.
-  gtag('config', 'UA-174913118-1', {
-    'page_title': 'search',
-    'page_location': `${SEARCH_QUERY_PAGE_LOCATION}${query}`,
-    'page_path': `${SEARCH_QUERY_PAGE_PATH}${query}`,
-  });
+  ga('send', 'pageview', `/search?q=${query}`);
+
+  // gtag('config', 'UA-174913118-1', {
+  //   'page_title': 'search',
+  //   'page_location': `${SEARCH_QUERY_PAGE_LOCATION}${query}`,
+  //   'page_path': `${SEARCH_QUERY_PAGE_PATH}${query}`,
+  // });
 }
 
 // Utility functions

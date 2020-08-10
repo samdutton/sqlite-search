@@ -9,15 +9,18 @@
   "dependencies": {
     "eslint": "latest",
     "eslint-config-google": "latest",
-    "express": "^4.17.1",
+    "express": "latest",
     "grunt": "latest",
     "grunt-cli": "latest",
     "grunt-eslint": "latest",
     "grunt-stylelint": "latest",
+    "html-validator": "latest",
     "htmlhint": "latest",
-    "sqlite3": "^5.0.0",
+    "recursive-readdir": "latest",
+    "sqlite3": "latest",
     "stylelint": "latest",
-    "stylelint-config-standard": "latest"
+    "stylelint-config-standard": "latest",
+    "subtitle": "^2.0.3"
   },
   "engines": {
     "node": "12.x"
