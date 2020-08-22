@@ -50,6 +50,7 @@ const SPEAKER_REGEX = /^([A-Z1-9 \-]+): */;
 let currentSpeaker;
 let DO_VALIDATION = false;
 let numCaptions = 0;
+let numCaptionsInserted = 0;
 let numErrors = 0;
 let numSrtFiles = 0;
 let numSrtFilesProcessed = 0;
@@ -61,7 +62,7 @@ const TABLE_NAME = 'captions';
 const DATABASE_FILE = '../captions.db';
 
 // Use ../docs for integration with GitHub Pages.
-let APP_DIR = '../docs';
+let APP_DIR = 'docs';
 const APP_TRANSCRIPTS_DIR = `${APP_DIR}/transcripts`;
 let SRT_DIR = 'srt';
 const STANDALONE_DIR = `${APP_DIR}/standalone`;
@@ -170,10 +171,12 @@ function processSrtFiles() {
     });
     // These variables are used to check when all SRT files have been processed.
     numSrtFiles = filepaths.length;
+    // For example:
+    //   Time to process 13961 captions
+    //   from 35 transcripts: 5658.839ms
     console.time(`from ${numSrtFiles} transcripts`);
+    console.time('Time to insert captions in database');
     console.log('\n');
-    console.time(`\nTime to build database and write and validate HTML ` +
-      `for ${numSrtFiles} transcripts with ${numCaptions} captions`);
     for (const filepath of filepaths) {
       processSrtFile(filepath);
     }
@@ -218,6 +221,9 @@ function processSrtText(videoId, text) {
     console.log(`\nTime to process ${numCaptions} captions`);
     console.timeEnd(`from ${numSrtFiles} transcripts`);
     console.log('\n');
+    if (numErrors) {
+      displayError(`Completed with ${numErrors} errors.`);
+    }
     // Create 'homepage' linking to standalone video transcript 'pages'.
     if (CREATE_STANDALONE_HOMEPAGE) {
       createStandaloneHomePage();
@@ -256,12 +262,13 @@ function processVideoData(videoId, captions) {
   validateThenWrite(searchFilepath, html);
 }
 
-// Process the captions for a video:
+// Process the captions for a single video:
 // • Tweak the caption text and start time values.
 // • Parse the caption text to get speaker names where possible.
 // . Create HTML for each caption (for the readable transcripts).
 // • Add the caption data to the database: video ID, start time, caption text.
 function processCaptions(videoId, captions) {
+  // console.log(`processCaptions() for ${videoId}`);
   let html = '';
   // Randomly set the maximum number of spans allowed in a paragraph.
   let max = getRandom(3, 15);
@@ -270,7 +277,6 @@ function processCaptions(videoId, captions) {
   let speechLength = 0;
 
   for (const caption of captions) {
-    ++numCaptions;
     // Replace line breaks in the captions and remove any stray whitespace.
     caption.text = caption.text.
       replace(/\n/, ' ').
@@ -287,8 +293,11 @@ function processCaptions(videoId, captions) {
     if (SPEAKER_REGEX.test(caption.text)) {
       speechLength = 0;
     }
-    // Remove speaker names from caption text so they aren't searched as caption content.
-    caption.text = caption.text.replace(SPEAKER_REGEX, '');
+    caption.text = caption.text.
+      // Remove speaker names from caption text so they aren't searched as caption content.
+      replace(SPEAKER_REGEX, '').
+      // Escape single quotes to enable database insert statement.
+      replace(/'/g, `''`);
     // Test for dodgy characters, just in case.
     if (/^[{Letter} .\-?]+$/.test(caption.text)) {
       logError(`Found unexpected character in caption: ${caption.text}`);
@@ -332,9 +341,21 @@ function insertInDatabase(caption) {
   const statement = `INSERT INTO ${TABLE_NAME} ` +
     `VALUES ('${caption.video}', '${caption.time}', '${caption.text}')`;
   database.run(statement, (error) => {
-    console.error(`Error inserting into database ${TABLE_NAME}`,
-      error, statement);
-    process.exit(1);
+    if (error) {
+      console.error(`\nError inserting into ${TABLE_NAME} table\nError:`,
+        error, `\nStatement: ${statement}`);
+      process.exit(1);
+    } else {
+      // console.log(`Successful added caption: ${caption.video}, ${caption.time}, ${caption.text}`);
+      // console.log(`${++numCaptionsInserted} caption(s) inserted.`);
+      // console.log(`Current total: ${numCaptions} captions.\n`);
+      // Note that numCaptions keeps rising and numCaptionsInserted only ever
+      // reaches numCaptions when all captions have been inserted.
+      if (++numCaptionsInserted === numCaptions) {
+        console.timeEnd('Time to insert captions in database');
+        console.log('\n');
+      }
+    }
   });
 }
 
@@ -452,8 +473,6 @@ function validateThenWrite(filepath, html) {
     } else {
       console.log(`Validated \x1b[97m${filepath}\x1b[0m`);
       writeFile(filepath, html);
-      // TODO: take this out of this function...
-      checkIfComplete();
     }
   }).catch((error) => {
     displayError(`Error validating ${filepath}`, error);
@@ -466,20 +485,6 @@ function writeFile(filepath, data) {
     console.log(`Created \x1b[97m${filepath}\x1b[0m`);
   } catch (error) {
     displayError(`Error writing ${filepath}:`, error);
-  }
-}
-
-// Check if all transcripts have been written.
-// TODO: make this less hacky...
-function checkIfComplete() {
-  // Count files written to both standalone and search transcript directories.
-  if (++numTranscriptsWritten === numSrtFiles * 2) {
-    console.timeEnd(`\nTime to build database and write and validate HTML ` +
-    `for ${numSrtFiles} transcripts with ${numCaptions} captions`);
-    console.log('\n');
-  }
-  if (numErrors) {
-    displayError(`Completed with ${numErrors} errors.`);
   }
 }
 
