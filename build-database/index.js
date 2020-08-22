@@ -294,9 +294,9 @@ function processCaptions(videoId, captions) {
     }
     caption.text = caption.text.
       // Remove speaker names from caption text so they aren't searched as caption content.
-      replace(SPEAKER_REGEX, '').
-      // Escape single quotes to enable database insert statement.
-      replace(/'/g, `''`);
+      replace(SPEAKER_REGEX, '');
+    // Escape single quotes to enable database insert statement.
+    // replace(/'/g, `''`);
     // Test for dodgy characters, just in case.
     if (/^[{Letter} .\-?]+$/.test(caption.text)) {
       logError(`Found unexpected character in caption: ${caption.text}`);
@@ -337,9 +337,9 @@ function processCaptions(videoId, captions) {
 // TODO: may be quicker to batch insert.
 function insertInDatabase(caption) {
   // const value = `('${caption.video}', '${caption.time}', '${caption.text}')`
-  const statement = `INSERT INTO ${TABLE_NAME} ` +
-    `VALUES ('${caption.video}', '${caption.time}', '${caption.text}')`;
-  db.run(statement, (error) => {
+  const statement = `INSERT INTO ${TABLE_NAME} VALUES (?, ?, ?)`;
+  const values = [caption.video, caption.time, caption.text];
+  db.run(statement, values, (error) => {
     if (error) {
       console.error(`\nError inserting into ${TABLE_NAME} table\nError:`,
         error, `\nStatement: ${statement}`);
@@ -351,6 +351,7 @@ function insertInDatabase(caption) {
       // Note that numCaptions keeps rising and numCaptionsInserted only ever
       // reaches numCaptions when all captions have been inserted.
       if (++numCaptionsInserted === numCaptions) {
+        console.log('\n');
         console.timeEnd(`Time to build ${TABLE_NAME} database`);
         console.log('\n');
       }
