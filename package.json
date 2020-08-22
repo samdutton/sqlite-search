@@ -20,7 +20,7 @@
     "sqlite3": "latest",
     "stylelint": "latest",
     "stylelint-config-standard": "latest",
-    "subtitle": "^2.0.3"
+    "subtitle": "latest"
   },
   "engines": {
     "node": "12.x"

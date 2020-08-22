@@ -54,12 +54,12 @@ let numCaptionsInserted = 0;
 let numErrors = 0;
 let numSrtFiles = 0;
 let numSrtFilesProcessed = 0;
-let numTranscriptsWritten = 0;
 const speakers = new Set();
 const videoIds = [];
 
+const DB_FILE = '../captions.db';
 const TABLE_NAME = 'captions';
-const DATABASE_FILE = '../captions.db';
+
 
 // Use ../docs for integration with GitHub Pages.
 let APP_DIR = 'docs';
@@ -129,17 +129,17 @@ if (argv.o) {
   APP_DIR = argv.o;
 }
 
-const database = new sqlite3.Database(DATABASE_FILE, (error) => {
+const db = new sqlite3.Database(DB_FILE, (error) => {
   if (error) {
-    console.error(`Error creating database ${DATABASE_FILE}:`, error.message);
+    console.error(`Error creating database ${DB_FILE}:`, error.message);
     process.exit(1);
   } else {
-    console.log(`Connected to in-memory SQLite database ${DATABASE_FILE}.`);
+    console.log(`Connected to in-memory SQLite database ${DB_FILE}.`);
   }
 });
 
-if (!fs.existsSync(DATABASE_FILE)) {
-  database.run(`CREATE TABLE ${TABLE_NAME} (video TEXT, time TEXT, text TEXT)`, (error) => {
+if (!fs.existsSync(DB_FILE)) {
+  db.run(`CREATE TABLE ${TABLE_NAME} (video TEXT, time TEXT, text TEXT)`, (error) => {
     if (error) {
       console.error(`Error creating table ${TABLE_NAME}:`, error.message);
       process.exit(1);
