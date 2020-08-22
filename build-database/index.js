@@ -175,7 +175,7 @@ function processSrtFiles() {
     //   Time to process 13961 captions
     //   from 35 transcripts: 5658.839ms
     console.time(`from ${numSrtFiles} transcripts`);
-    console.time('Time to insert captions in database');
+    console.time(`Time to build ${TABLE_NAME} database`);
     console.log('\n');
     for (const filepath of filepaths) {
       processSrtFile(filepath);
@@ -229,8 +229,7 @@ function processSrtText(videoId, text) {
       createStandaloneHomePage();
     }
     writeFile(SPEAKERS_DATA_FILEPATH, JSON.stringify([...speakers].sort()));
-    console.log(`\nWrote data for ${speakers.size} speakers to ` +
-        `\x1b[97m${SPEAKERS_DATA_FILEPATH}\x1b[0m\n`);
+    console.log(`Wrote data for ${speakers.size} speakers`);
   }
 }
 
@@ -340,7 +339,7 @@ function insertInDatabase(caption) {
   // const value = `('${caption.video}', '${caption.time}', '${caption.text}')`
   const statement = `INSERT INTO ${TABLE_NAME} ` +
     `VALUES ('${caption.video}', '${caption.time}', '${caption.text}')`;
-  database.run(statement, (error) => {
+  db.run(statement, (error) => {
     if (error) {
       console.error(`\nError inserting into ${TABLE_NAME} table\nError:`,
         error, `\nStatement: ${statement}`);
@@ -352,7 +351,7 @@ function insertInDatabase(caption) {
       // Note that numCaptions keeps rising and numCaptionsInserted only ever
       // reaches numCaptions when all captions have been inserted.
       if (++numCaptionsInserted === numCaptions) {
-        console.timeEnd('Time to insert captions in database');
+        console.timeEnd(`Time to build ${TABLE_NAME} database`);
         console.log('\n');
       }
     }
@@ -377,8 +376,8 @@ function createStandaloneHomePage() {
   }
   const standaloneIndex = `${STANDALONE_DIR}/index.html`;
   writeFile(standaloneIndex, html);
-  console.log(`\nCreated index page linking to standalone transcripts: ` +
-      `\x1b[97m${standaloneIndex}\x1b[0m\n`);
+  console.log(`Created index page linking to standalone transcripts: ` +
+      `\x1b[97m${standaloneIndex}\x1b[0m`);
 }
 
 // Check the text of each caption for speaker names.
