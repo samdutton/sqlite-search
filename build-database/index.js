@@ -50,7 +50,7 @@ const SPEAKER_REGEX = /^([A-Z1-9 \-]+): */;
 let currentSpeaker;
 let DO_VALIDATION = false;
 let numCaptions = 0;
-let numCaptionsInserted = 0;
+let numDataItemsInserted = 0;
 let numErrors = 0;
 let numSrtFiles = 0;
 let numSrtFilesProcessed = 0;
@@ -275,6 +275,9 @@ function processCaptions(videoId, captions) {
   // paragraph break was added (see below) to break up long speeches.
   let speechLength = 0;
 
+  // Values to be inserted in database.
+  const values = [];
+
   for (const caption of captions) {
     // Replace line breaks in the captions and remove any stray whitespace.
     caption.text = caption.text.
@@ -305,7 +308,9 @@ function processCaptions(videoId, captions) {
     caption.time = caption.start / 1000, // SRT uses milliseconds; YouTube uses seconds.
     caption.video = videoId;
 
-    insertInDatabase(caption);
+    // TODO: Add speaker if able to parse captions for speakers.
+    // Values are inserted in database in one operation per video.
+    values.push(caption.video, caption.time, caption.text);
 
     // Check for a change of speaker and add markup to speaker names.
     caption.html = handleSpeakerNames(caption.html);
@@ -331,14 +336,30 @@ function processCaptions(videoId, captions) {
     }
     html += caption.html;
   } // end processing captions
+  // Insert in batches of INSERT_MAX.
+  // For best performance, this should be the highest possible value that
+  // doesn't cause errors. It's a bit hard to work out why this isn't higher :/.
+  // https://www.sqlite.org/limits.html
+  const INSERT_MAX = 300;
+  // console.log('values.length', values.length);
+  const chunkedValues = new Array(Math.ceil(values.length / INSERT_MAX)).fill().
+    map((_) => values.splice(0, INSERT_MAX));
+  // console.log('>>> chunkedValues.length', chunkedValues.length);
+  for (const chunk of chunkedValues) {
+    // console.log('chunk', chunk);
+    // console.log('>>> chunk size', chunk.length);
+    insertInDatabase(chunk);
+  }
   return html;
 }
 
-// TODO: may be quicker to batch insert.
-function insertInDatabase(caption) {
-  // const value = `('${caption.video}', '${caption.time}', '${caption.text}')`
-  const statement = `INSERT INTO ${TABLE_NAME}(video, time, text) VALUES (?, ?, ?)`;
-  const values = [caption.video, caption.time, caption.text];
+// Insert values with a single insert for each video.
+// This is faster than inserting caption data one by one.
+// TODO: Check if quicker to insert data for all videos in one go.
+function insertInDatabase(values) {
+  // console.log('values.length', values.length);
+  const placeholders = values.map(() => '(?, ?, ?)').join(', ');
+  const statement = `INSERT INTO ${TABLE_NAME} VALUES ${placeholders}`;
   db.run(statement, values, (error) => {
     if (error) {
       console.error(`\nError inserting into ${TABLE_NAME} table\nError:`,
@@ -348,9 +369,13 @@ function insertInDatabase(caption) {
       // console.log(`Successful added caption: ${caption.video}, ${caption.time}, ${caption.text}`);
       // console.log(`${++numCaptionsInserted} caption(s) inserted.`);
       // console.log(`Current total: ${numCaptions} captions.\n`);
+
       // Note that numCaptions keeps rising and numCaptionsInserted only ever
       // reaches numCaptions when all captions have been inserted.
-      if (++numCaptionsInserted === numCaptions) {
+      // values is an array of 'flattened' data for a chunk of videos.
+      numDataItemsInserted += values.length;
+      // Three data items per caption (video, time, text)
+      if (numDataItemsInserted === numCaptions * 3) {
         console.log('\n');
         console.timeEnd(`Time to build ${TABLE_NAME} database`);
         console.log('\n');
