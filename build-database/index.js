@@ -138,19 +138,25 @@ const db = new sqlite3.Database(DB_FILE, (error) => {
   }
 });
 
-if (!fs.existsSync(DB_FILE)) {
-  db.run(`CREATE TABLE ${TABLE_NAME} (video TEXT, time TEXT, text TEXT)`, (error) => {
-    if (error) {
-      console.error(`Error creating table ${TABLE_NAME}:`, error.message);
-      process.exit(1);
-    } else {
-      console.log(`Created table ${TABLE_NAME}.`);
-      processSrtFiles();
-    }
-  });
-} else {
-  processSrtFiles();
+try {
+  fs.unlinkSync(DB_FILE);
+} catch (error) {
+  console.error(`Error deleting old ${DB_FILE}`, error);
 }
+
+// if (!fs.existsSync(DB_FILE)) {
+db.run(`CREATE TABLE ${TABLE_NAME} (video TEXT, time TEXT, text TEXT)`, (error) => {
+  if (error) {
+    console.error(`Error creating table ${TABLE_NAME}:`, error.message);
+    process.exit(1);
+  } else {
+    console.log(`Created table ${TABLE_NAME}.`);
+    processSrtFiles();
+  }
+});
+// } else {
+//   processSrtFiles();
+// }
 
 // Parse each SRT caption file in the input directory.
 function processSrtFiles() {
@@ -341,7 +347,7 @@ function processCaptions(videoId, captions) {
   // doesn't cause errors. It's a bit hard to work out why this isn't higher :/.
   // https://www.sqlite.org/limits.html
   const INSERT_MAX = 300;
-  // console.log('values.length', values.length);
+  // https://stackoverflow.com/a/44687374/51593
   const chunkedValues = new Array(Math.ceil(values.length / INSERT_MAX)).fill().
     map((_) => values.splice(0, INSERT_MAX));
   // console.log('>>> chunkedValues.length', chunkedValues.length);
