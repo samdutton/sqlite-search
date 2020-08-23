@@ -337,7 +337,7 @@ function processCaptions(videoId, captions) {
 // TODO: may be quicker to batch insert.
 function insertInDatabase(caption) {
   // const value = `('${caption.video}', '${caption.time}', '${caption.text}')`
-  const statement = `INSERT INTO ${TABLE_NAME} VALUES (?, ?, ?)`;
+  const statement = `INSERT INTO ${TABLE_NAME}(video, time, text) VALUES (?, ?, ?)`;
   const values = [caption.video, caption.time, caption.text];
   db.run(statement, values, (error) => {
     if (error) {
