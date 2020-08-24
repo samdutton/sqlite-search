@@ -1,7 +1,6 @@
-// init project
+const Database = require('better-sqlite3');
 const bodyParser = require('body-parser');
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 
 const port = process.env.PORT || 9999;
 
@@ -21,14 +20,7 @@ const listener = app.listen(port, () => {
 const DB_FILE = 'captions.db';
 const TABLE_NAME = 'captions';
 
-const db = new sqlite3.Database(DB_FILE, (error) => {
-  if (error) {
-    console.error(`Error creating database ${DB_FILE}:`, error.message);
-    process.exit(1);
-  } else {
-    console.log(`Connected to in-memory SQLite database ${DB_FILE}.`);
-  }
-});
+const db = new Database(DB_FILE);
 
 app.get('/', (request, response) => {
   console.log('/ request.path', request.path);
@@ -42,7 +34,11 @@ app.get('/', (request, response) => {
 app.get('/search', (request, response) => {
   if (request.query.q) {
     console.log('>>> Query received:', request.query.q);
-    search(response, request.query.q.replace(/[^\w-]/g), '');
+    try {
+      search(response, request.query.q.replace(/[^\w-]/g), '');
+    } catch (error) {
+      console.error('search() error: ', error);
+    }
   } else {
     console.log('No query value in search request.');
     response.send('No query value in search request.');
@@ -60,13 +56,8 @@ app.get('/all', (request, response) => {
 // Search the database then call sendSearchResult().
 function search(response, query) {
   console.log('Query in search():', query);
-  db.serialize(() => {
-    db.all(`SELECT * FROM ${TABLE_NAME} WHERE text LIKE '%${query}%'`, (error, rows) => {
-      if (error) {
-        console.error('search() error:', error.message);
-      } else {
-        response.send(rows);
-      }
-    });
-  });
+  const rows =
+    db.prepare(`SELECT * FROM ${TABLE_NAME} WHERE text like @query`).all({query: `%${query}%`});
+  console.log(rows);
+  response.send(rows);
 }

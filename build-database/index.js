@@ -11,11 +11,12 @@
  * limitations under the License.
  */
 
+
+const Database = require('better-sqlite3');
 const fs = require('fs');
 const fsPromises = require('fs').promises;
 const recursive = require('recursive-readdir');
 // const rimraf = require('rimraf');
-const sqlite3 = require('sqlite3').verbose();
 const subtitle = require('subtitle');
 const validator = require('html-validator');
 
@@ -50,7 +51,6 @@ const SPEAKER_REGEX = /^([A-Z1-9 \-]+): */;
 let currentSpeaker;
 let DO_VALIDATION = false;
 let numCaptions = 0;
-let numDataItemsInserted = 0;
 let numErrors = 0;
 let numSrtFiles = 0;
 let numSrtFilesProcessed = 0;
@@ -59,7 +59,7 @@ const videoIds = [];
 
 const DB_FILE = '../captions.db';
 const TABLE_NAME = 'captions';
-
+const TABLE_COLUMNS = '(video TEXT, time TEXT, text TEXT)';
 
 // Use ../docs for integration with GitHub Pages.
 let APP_DIR = 'docs';
@@ -96,26 +96,9 @@ if (argv.v) {
   process.exit();
 }
 
-// // Unless appending output, remove all HTML files from the output directory.
-// if (!argv.a) {
-//   // rimraf(`${APP_DIR}/*.html`, (error) => {
-//   //   if (error) {
-//   //     displayError('Error removing HTML files from ${APP_DIR}:', error);
-//   //     return;
-//   //   }
-//   // });
-//   // console.log(`Deleted old files from ${APP_DIR}/*.html`);
-// }
-
 if (argv.c) {
   CREATE_STANDALONE_HOMEPAGE = argv.c; // index page for standalone transcripts
 }
-
-// if (argv.d) {
-//   CREATE_CAPTION_DOC = true;
-//   console.log(`Create document for caption data for third party indexing` +
-//     `at ${CAPTION_DOC_FILEPATH}`);
-// }
 
 if (argv.i) {
   SRT_DIR = argv.i;
@@ -129,34 +112,21 @@ if (argv.o) {
   APP_DIR = argv.o;
 }
 
-const db = new sqlite3.Database(DB_FILE, (error) => {
-  if (error) {
-    console.error(`Error creating database ${DB_FILE}:`, error.message);
-    process.exit(1);
-  } else {
-    console.log(`Connected to in-memory SQLite database ${DB_FILE}.`);
+// Delete database file and rebuild.
+fs.unlinkSync(DB_FILE);
+const db = new Database(DB_FILE);
+const createTable = db.prepare(`CREATE TABLE ${TABLE_NAME} ${TABLE_COLUMNS}`);
+createTable.run();
+const insertCaption = db.prepare(`INSERT INTO  ${TABLE_NAME} VALUES (@video, @time, @text)`);
+
+// The insertCaptions function is called for each video from processCaptions().
+const insertCaptions = db.transaction((captions) => {
+  for (const caption of captions) {
+    insertCaption.run(caption);
   }
 });
 
-try {
-  fs.unlinkSync(DB_FILE);
-} catch (error) {
-  console.error(`Error deleting old ${DB_FILE}`, error);
-}
-
-// if (!fs.existsSync(DB_FILE)) {
-db.run(`CREATE TABLE ${TABLE_NAME} (video TEXT, time TEXT, text TEXT)`, (error) => {
-  if (error) {
-    console.error(`Error creating table ${TABLE_NAME}:`, error.message);
-    process.exit(1);
-  } else {
-    console.log(`Created table ${TABLE_NAME}.`);
-    processSrtFiles();
-  }
-});
-// } else {
-//   processSrtFiles();
-// }
+processSrtFiles();
 
 // Parse each SRT caption file in the input directory.
 function processSrtFiles() {
@@ -177,12 +147,13 @@ function processSrtFiles() {
     });
     // These variables are used to check when all SRT files have been processed.
     numSrtFiles = filepaths.length;
-    // For example:
+
+    // Format looks odd :) but is designed to display like this:
     //   Time to process 13961 captions
     //   from 35 transcripts: 5658.839ms
     console.time(`from ${numSrtFiles} transcripts`);
-    console.time(`Time to build ${TABLE_NAME} database`);
     console.log('\n');
+
     for (const filepath of filepaths) {
       processSrtFile(filepath);
     }
@@ -225,6 +196,9 @@ function processSrtText(videoId, text) {
   // • Write the serialized search index to a file.
   if (++numSrtFilesProcessed === numSrtFiles) {
     console.log(`\nTime to process ${numCaptions} captions`);
+    // Format looks odd :) but is designed to display like this:
+    //   Time to process 13961 captions
+    //   from 35 transcripts: 5658.839ms
     console.timeEnd(`from ${numSrtFiles} transcripts`);
     console.log('\n');
     if (numErrors) {
@@ -235,7 +209,7 @@ function processSrtText(videoId, text) {
       createStandaloneHomePage();
     }
     writeFile(SPEAKERS_DATA_FILEPATH, JSON.stringify([...speakers].sort()));
-    console.log(`Wrote data for ${speakers.size} speakers`);
+    console.log(`Wrote data for ${speakers.size} speakers\n`);
   }
 }
 
@@ -316,7 +290,11 @@ function processCaptions(videoId, captions) {
 
     // TODO: Add speaker if able to parse captions for speakers.
     // Values are inserted in database in one operation per video.
-    values.push(caption.video, caption.time, caption.text);
+    values.push({
+      video: caption.video,
+      time: caption.time,
+      text: caption.text,
+    });
 
     // Check for a change of speaker and add markup to speaker names.
     caption.html = handleSpeakerNames(caption.html);
@@ -342,53 +320,12 @@ function processCaptions(videoId, captions) {
     }
     html += caption.html;
   } // end processing captions
-  // Insert in batches of INSERT_MAX.
-  // For best performance, this should be the highest possible value that
-  // doesn't cause errors. It's a bit hard to work out why this isn't higher :/.
-  // https://www.sqlite.org/limits.html
-  const INSERT_MAX = 300;
-  // https://stackoverflow.com/a/44687374/51593
-  const chunkedValues = new Array(Math.ceil(values.length / INSERT_MAX)).fill().
-    map((_) => values.splice(0, INSERT_MAX));
-  // console.log('>>> chunkedValues.length', chunkedValues.length);
-  for (const chunk of chunkedValues) {
-    // console.log('chunk', chunk);
-    // console.log('>>> chunk size', chunk.length);
-    insertInDatabase(chunk);
-  }
+
+  insertCaptions(captions);
+
   return html;
 }
 
-// Insert values with a single insert for each video.
-// This is faster than inserting caption data one by one.
-// TODO: Check if quicker to insert data for all videos in one go.
-function insertInDatabase(values) {
-  // console.log('values.length', values.length);
-  const placeholders = values.map(() => '(?, ?, ?)').join(', ');
-  const statement = `INSERT INTO ${TABLE_NAME} VALUES ${placeholders}`;
-  db.run(statement, values, (error) => {
-    if (error) {
-      console.error(`\nError inserting into ${TABLE_NAME} table\nError:`,
-        error, `\nStatement: ${statement}`);
-      process.exit(1);
-    } else {
-      // console.log(`Successful added caption: ${caption.video}, ${caption.time}, ${caption.text}`);
-      // console.log(`${++numCaptionsInserted} caption(s) inserted.`);
-      // console.log(`Current total: ${numCaptions} captions.\n`);
-
-      // Note that numCaptions keeps rising and numCaptionsInserted only ever
-      // reaches numCaptions when all captions have been inserted.
-      // values is an array of 'flattened' data for a chunk of videos.
-      numDataItemsInserted += values.length;
-      // Three data items per caption (video, time, text)
-      if (numDataItemsInserted === numCaptions * 3) {
-        console.log('\n');
-        console.timeEnd(`Time to build ${TABLE_NAME} database`);
-        console.log('\n');
-      }
-    }
-  });
-}
 
 // Create index page linking to transcripts.
 function createStandaloneHomePage() {

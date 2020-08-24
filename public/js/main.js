@@ -29,12 +29,13 @@ const baseUrl = `${window.location.origin}${window.location.pathname}`;
 // const SEARCH_QUERY_PAGE_LOCATION = `https://glitch.com/#!/sqlite-search/search?q=`;
 // const SEARCH_QUERY_PAGE_PATH = `/search?q=`;
 
-queryInput.onkeydown = () => {
-  // Do a search if the user presses the enter or return key.
-  if (event.key === 'Enter' || event.key === 'Tab') {
-    search(queryInput.value);
-  }
-};
+// No need for this: input is in a form so submission happens automatically.
+// queryInput.onkeydown = () => {
+//   // Do a search if the user presses the enter or return key.
+//   if (event.key === 'Enter' || event.key === 'Tab') {
+//     search(queryInput.value);
+//   }
+// };
 
 queryInput.oninput = () => {
   // Enable :invalid CSS if input is not empty.
