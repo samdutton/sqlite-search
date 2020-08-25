@@ -25,17 +25,16 @@ const db = new Database(DB_FILE);
 app.get('/', (request, response) => {
   console.log('/ request.path', request.path);
   if (request.query.q) {
-    console.log('query:', request.query.q);
-    response.send(`query:, ${request.query.q}`);
+    console.log('q parameter for /:', request.query.q);
   }
   response.sendFile(`${__dirname}/views/index.html`);
 });
 
 app.get('/search', (request, response) => {
   if (request.query.q) {
-    console.log('>>> Query received:', request.query.q);
+    console.log('q parameter for /search:', request.query.q);
     try {
-      search(response, request.query.q.replace(/[^\w-]/g), '');
+      search(response, request.query.q.replace(/[^\w -]/g), '');
     } catch (error) {
       console.error('search() error: ', error);
     }
@@ -45,19 +44,9 @@ app.get('/search', (request, response) => {
   }
 });
 
-// endpoint to get all the dreams in the database
-app.get('/all', (request, response) => {
-  db.all(`SELECT * from ${TABLE_NAME}`, (error, rows) => {
-    console.log('error:', error, 'rows:', rows);
-    response.send(JSON.stringify(rows));
-  });
-});
-
-// Search the database then call sendSearchResult().
 function search(response, query) {
   console.log('Query in search():', query);
   const rows =
     db.prepare(`SELECT * FROM ${TABLE_NAME} WHERE text like @query`).all({query: `%${query}%`});
-  console.log(rows);
   response.send(rows);
 }

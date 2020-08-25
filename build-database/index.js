@@ -62,7 +62,7 @@ const TABLE_NAME = 'captions';
 const TABLE_COLUMNS = '(video TEXT, time TEXT, text TEXT)';
 
 // Use ../docs for integration with GitHub Pages.
-let APP_DIR = 'docs';
+let APP_DIR = '../public';
 const APP_TRANSCRIPTS_DIR = `${APP_DIR}/transcripts`;
 let SRT_DIR = 'srt';
 const STANDALONE_DIR = `${APP_DIR}/standalone`;
