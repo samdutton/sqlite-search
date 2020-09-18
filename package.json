@@ -8,19 +8,19 @@
   },
   "dependencies": {
     "better-sqlite3": "latest",
-    "eslint": "^7.7.0",
+    "eslint": "^7.8.1",
     "eslint-config-google": "latest",
     "express": "latest",
     "grunt": "latest",
     "grunt-cli": "latest",
     "grunt-eslint": "latest",
     "grunt-stylelint": "latest",
-    "html-validator": "latest",
+    "html-validator": "^5.1.16",
     "htmlhint": "latest",
     "recursive-readdir": "latest",
-    "stylelint": "latest",
+    "stylelint": "^13.7.0",
     "stylelint-config-standard": "latest",
-    "subtitle": "latest"
+    "subtitle": "^3.0.0"
   },
   "engines": {
     "node": "12.x"

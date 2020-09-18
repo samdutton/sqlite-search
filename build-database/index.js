@@ -34,6 +34,7 @@ const VALIDATOR_IGNORE = [
   'Warning: Section lacks heading. Consider using "h2"-"h6" elements to ' +
     'add identifying headings to all sections.'];
 
+const CAPTION_REGEX = /^[^a-zA-Z0-9 .\-_?\[\]>]+$/;
 let CREATE_STANDALONE_HOMEPAGE = true; // index page linking to standalone transcripts
 const ERROR_LOG = 'error-log.txt';
 const VERSION = '1.0 beta';
@@ -202,7 +203,7 @@ function processSrtText(videoId, text) {
     console.timeEnd(`from ${numSrtFiles} transcripts`);
     console.log('\n');
     if (numErrors) {
-      displayError(`Completed with ${numErrors} errors.`);
+      console.error(`Completed with ${numErrors} errors. See ${ERROR_LOG} for details.`);
     }
     // Create 'homepage' linking to standalone video transcript 'pages'.
     if (CREATE_STANDALONE_HOMEPAGE) {
@@ -281,8 +282,9 @@ function processCaptions(videoId, captions) {
     // Escape single quotes to enable database insert statement.
     // replace(/'/g, `''`);
     // Test for dodgy characters, just in case.
-    if (/^[{Letter} .\-?]+$/.test(caption.text)) {
-      logError(`Found unexpected character in caption: ${caption.text}`);
+    if (CAPTION_REGEX.test(caption.text)) {
+      console.log(/^[{Letter}\s.\-?]+$/.test(caption.text), '>>>', caption.text);
+      logError(`${SRT_DIR}/${videoId}.srt has unexpected character in caption:${caption.text}`);
     }
     caption.speaker = currentSpeaker, // Reset whenever handleSpeakerNames() called (above).
     caption.time = caption.start / 1000, // SRT uses milliseconds; YouTube uses seconds.
